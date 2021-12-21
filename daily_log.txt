@@ -1,0 +1,2 @@
+11/12 : Origin画图，确定寻找starting point的图，下午，确定需要做三分类+plot MRCPs带CI图
+
