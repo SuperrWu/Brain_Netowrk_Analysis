@@ -19,6 +19,7 @@ class FeatureExtractor(object):
         triangles = self.convert_dict_to_df(Graph.get_triangles())
         closeness_centrality = self.convert_dict_to_df(Graph.get_closeness_centrality())
         df = pd.concat([ centrality ,  degree , between_centrality , triangles, closeness_centrality], axis=1)
+        # df = centrality
         scaler = MinMaxScaler().fit(df)
         X_scale = scaler.transform(df)
         nodes_features = dict(zip(list(Graph.channel_dict.values()), df.mean(axis=1).to_list()))
@@ -50,7 +51,7 @@ if __name__ == "__main__":
     x, y = EEGhandler.load_eeg(path)
     X = []
     for i in tqdm(x):
-        adjacency = EEGhandler.compute_adjacency_matrix(i, threshold = 0)
+        adjacency = EEGhandler.compute_adjacency_matrix(i, threshold = 0.3)
         G = BrainNetwork(adjacency)
         feats = FeatureExtractor()
         nodes_feats = feats.get_nodes_features(G)
@@ -65,5 +66,4 @@ if __name__ == "__main__":
         pickle.dump(y, f)
     f.close()
     
-
 

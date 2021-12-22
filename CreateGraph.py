@@ -2,6 +2,9 @@ from EEGHandler import EEGHandler
 import networkx as nx
 import mne
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 class BrainNetwork(object):
     def __init__(self, adjacency = None):
@@ -23,7 +26,8 @@ class BrainNetwork(object):
         labels_position_dict = {}
         for i in positions:
             if i in montage.ch_names[:-2]:
-                labels_position_dict[i] = positions[i]
+                labels_position_dict[i] = positions[i][:-1]
+        self.Graph = nx.relabel_nodes(self.Graph, labels_dict)
         # print("postions_dict:", labels_position_dict)
         return labels_dict, labels_position_dict
         
@@ -42,8 +46,10 @@ class BrainNetwork(object):
 
     def get_closeness_centrality(self):
         return nx.closeness_centrality(self.Graph)
-
-
+    
+    def plot_heatmap(self, path):
+        sns.heatmap(self.adjacency, xticklabels=self.channel_dict.values() ,yticklabels=self.channel_dict.values())
+        plt.savefig(path)
 
 if __name__ == "__main__":
     EEGhandler = EEGHandler()
