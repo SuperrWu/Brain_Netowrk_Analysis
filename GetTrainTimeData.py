@@ -65,7 +65,9 @@ if __name__ == "__main__":
         for j in range(0, 100, 10):
            #  print(j, j + 9)
             temp_data = i[:, j:j + 10]
-            adjacency = EEGhandler.compute_adjacency_matrix(temp_data, threshold = 0)
+            functional_connectivity = EEGhandler.compute_functional_connectivity(i)
+            adjacency = EEGhandler.thresholding(functional_connectivity, 0.6, ignore_negative = False)
+            # adjacency = EEGhandler.compute_adjacency_matrix(temp_data, threshold = 0)
             G = BrainNetwork(adjacency)
             feats = FeatureExtractor()
             nodes_feats = feats.get_nodes_features(G)

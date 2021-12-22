@@ -44,21 +44,24 @@ class FeatureExtractor(object):
         X_scale = scaler.transform(edges_feats)
         return X_scale
 
-
 if __name__ == "__main__":
     EEGhandler = EEGHandler()
-    path = "eegtrialsdata.mat"
+    path = "eegtrialsdata_hyh.mat"
     x, y = EEGhandler.load_eeg(path)
     X = []
     for i in tqdm(x):
-        adjacency = EEGhandler.compute_adjacency_matrix(i, threshold = 0.3)
+        functional_connectivity = EEGhandler.compute_functional_connectivity(i)
+        adjacency = EEGhandler.thresholding(functional_connectivity, 0.6, ignore_negative = False)
         G = BrainNetwork(adjacency)
         feats = FeatureExtractor()
         nodes_feats = feats.get_nodes_features(G)
         edges_feats = feats.get_edges_features(G)
         features = feats.integrate_features(nodes_feats, edges_feats)
-        X.append(features)
+        scaler = MinMaxScaler().fit(features)
+        X_scale = scaler.transform(features)
+        X.append(X_scale)
     X = np.array(X)
+    print(X.shape)
     with open("train_x.pkl", "wb") as f:
         pickle.dump(X, f)
     f.close()

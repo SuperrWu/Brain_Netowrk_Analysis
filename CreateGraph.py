@@ -56,7 +56,9 @@ if __name__ == "__main__":
     path = "eegtrialsdata.mat"
     x, y = EEGhandler.load_eeg(path)
     data = x[0]
-    adjacency = EEGhandler.compute_adjacency_matrix(data, threshold = 0.7)
+    functional_connectivity = EEGhandler.compute_functional_connectivity(data)
+    adjacency = EEGhandler.thresholding(functional_connectivity, 0.4, ignore_negative = True)
+    print(adjacency)
     G = BrainNetwork(adjacency)
-    print(G.get_centrality(G))
+    print(G.get_centrality())
 

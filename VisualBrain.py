@@ -27,9 +27,10 @@ class BrainViwer(object):
 
     def plot_networks(self):
         feats = FeatureExtractor()
-        dictionary = feats.get_nodes_features(self.BrainNet)
-        de2 = [dictionary[v]*40 for v in sorted(dictionary.keys(), reverse=False)] 
-        nx.draw_networkx(self.BrainNet.Graph, self.BrainNet.channel_position_dict, node_size=de2, width=[float(v['weight'] * 5) for (r, c, v) in self.BrainNet.Graph.edges(data=True)])
+        # dictionary = feats.get_nodes_features(self.BrainNet)
+        dictionary = self.BrainNet.get_centrality()
+        de2 = [dictionary[v]*30 for v in sorted(dictionary.keys(), reverse=False)] 
+        nx.draw_networkx(self.BrainNet.Graph, self.BrainNet.channel_position_dict, node_size=de2, width=[float(v['weight']) for (r, c, v) in self.BrainNet.Graph.edges(data=True)])
         plt.savefig("brainnetworks.PNG")
 
 

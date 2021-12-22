@@ -29,7 +29,36 @@ class EEGHandler(object):
     def compute_correlation_coefficient(self, i, j):
         # compute cc
         return np.corrcoef(i, j)[0][1]
+    
+    def compute_functional_connectivity(self, data):
+        functional_connectivity = []
+        for i in data:
+            temp = []
+            for j in data:
+                temp.append(self.compute_correlation_coefficient(i, j))
+            functional_connectivity.append(temp)
+        functional_connectivity = np.array(functional_connectivity)
+        return functional_connectivity
 
+    def thresholding(self, data, threshold, ignore_negative = True):
+        if ignore_negative:
+            for i in range(len(data)):
+                for j in range(len(data)):
+                    if data[i][j] < threshold:
+                        data[i][j] = 0
+        else:
+            for i in range(len(data)):
+                for j in range(len(data)):
+                    if abs(data[i][j]) < threshold:
+                        data[i][j] = 0
+
+        # have no relationship with self
+        for i in range(len(data)):
+            data[i][i] = 0
+        # adjacency = self.normalize(adjacency)
+        return data
+        
+    '''
     def compute_adjacency_matrix(self, data, threshold):
         # compute Adjacency Matrix
         adjacency_matrix = []
@@ -51,7 +80,7 @@ class EEGHandler(object):
             adjacency[i][i] = 0
         adjacency = self.normalize(adjacency)
         return adjacency
-
+    '''
     def normalize(self, data):
         new_data = []
         for i in data:
@@ -73,11 +102,14 @@ class EEGHandler(object):
 
 
 if __name__ == "__main__":
-    dh = DataHandler()
+    EEGhandler = EEGHandler()
     path = "eegtrialsdata.mat"
-    x, y = dh.load_eeg(path)
+    x, y = EEGhandler.load_eeg(path)
     data = x[0]
-    adjacency = dh.compute_adjacency_matrix(data, threshold = 0.7)
+    functional_connectivity = EEGhandler.compute_functional_connectivity(data)
+    print(functional_connectivity)
+    print("------------------------------------------------------------------")
+    adjacency = EEGhandler.thresholding(functional_connectivity, 0.4, ignore_negative = True)
     print(adjacency)
 
 
