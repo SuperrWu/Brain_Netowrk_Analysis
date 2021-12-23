@@ -1,45 +1,47 @@
-from EEGHandler import EEGHandler
-import networkx as nx
-import mne
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from CreateGraph import BrainNetwork
+from Graph_Representation import EEGDataset
 import dgl
-from dgl.data import DGLDataset
-from tqdm import tqdm
 import torch
+import dgl.nn.pytorch as dglnn
+import torch.nn as nn
+from dgl.dataloading import GraphDataLoader
+import torch.nn.functional as F
 
-class SyntheticDataset(DGLDataset):
-    def __init__(self):
-        super().__init__(name='synthetic')
 
-    def process(self):
-        self.graphs = []
-        self.labels = []
-        EEGhandler = EEGHandler()
-        path = "eegtrialsdata.mat"
-        x, y = EEGhandler.load_eeg(path)
-        for i in tqdm(x):
-            functional_connectivity = EEGhandler.compute_functional_connectivity(i)
-            adjacency = EEGhandler.thresholding(functional_connectivity, 0.6, ignore_negative = False)
-            brainnet = BrainNetwork(adjacency)
-            g = dgl.from_networkx(brainnet.Graph)
-            self.graphs.append(g)
-            self.labels.append(0)
+class Classifier(nn.Module):
+    def __init__(self, in_dim, hidden_dim, n_classes):
+        super(Classifier, self).__init__()
+        self.conv1 = dglnn.GraphConv(in_dim, hidden_dim)
+        self.conv2 = dglnn.GraphConv(hidden_dim, hidden_dim)
+        self.classify = nn.Linear(hidden_dim, n_classes)
 
-        # Convert the label list to tensor for saving.
-        self.labels = torch.LongTensor(self.labels)
+    def forward(self, g, h):
+        # 应用图卷积和激活函数
+        h = F.relu(self.conv1(g, h))
+        h = F.relu(self.conv2(g, h))
+        with g.local_scope():
+            g.ndata['potentials'] = h
+            # 使用平均读出计算图表示
+            hg = dgl.mean_nodes(g, 'potentials')
+            return self.classify(hg)
 
-    def __getitem__(self, i):
-        return self.graphs[i], self.labels[i]
 
-    def __len__(self):
-        return len(self.graphs)
+
 
 
 if __name__ == "__main__":
-    dataset = SyntheticDataset()
-    graph, label = dataset[0]
-    print(graph, label)
-
+    dataset = EEGDataset()
+    dataloader = GraphDataLoader(
+        dataset,
+        batch_size=16,
+        drop_last=False,
+        shuffle=True)
+    model = Classifier(100, 20, 2)
+    opt = torch.optim.Adam(model.parameters())
+    for epoch in range(20):
+        for batched_graph, labels in dataloader:
+            feats = batched_graph.ndata['potentials']
+            logits = model(batched_graph, feats)
+            loss = F.cross_entropy(logits, labels)
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
