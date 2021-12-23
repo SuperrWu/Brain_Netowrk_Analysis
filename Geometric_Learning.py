@@ -8,11 +8,11 @@ import torch.nn.functional as F
 
 
 class Classifier(nn.Module):
-    def __init__(self, in_dim, hidden_dim, n_classes):
+    def __init__(self, in_feat, our_feat, n_classes):
         super(Classifier, self).__init__()
-        self.conv1 = dglnn.GraphConv(in_dim, hidden_dim)
-        self.conv2 = dglnn.GraphConv(hidden_dim, hidden_dim)
-        self.classify = nn.Linear(hidden_dim, n_classes)
+        self.conv1 = dglnn.GraphConv(in_feat, out_feat)
+        self.conv2 = dglnn.GraphConv(out_feat, out_feat)
+        self.classify = nn.Linear(out_feat, lasses)
 
     def forward(self, g, h):
         # 应用图卷积和激活函数
@@ -22,6 +22,7 @@ class Classifier(nn.Module):
             g.ndata['potentials'] = h
             # 使用平均读出计算图表示
             hg = dgl.mean_nodes(g, 'potentials')
+            hg= hg.squeeze(-1)
             return self.classify(hg)
 
 
@@ -29,19 +30,32 @@ class Classifier(nn.Module):
 
 
 if __name__ == "__main__":
+    # Getting dataset
     dataset = EEGDataset()
+    input_shape = dataset[0][0].ndata['potentials'].shape[1]
+    n_classes = dataset.num_labels
+    
+    # define batched dataset
     dataloader = GraphDataLoader(
         dataset,
         batch_size=16,
         drop_last=False,
         shuffle=True)
-    model = Classifier(100, 20, 2)
+    # create model
+    model = Classifier(input_shape, 128, n_classes-1)
     opt = torch.optim.Adam(model.parameters())
-    for epoch in range(20):
+    epoch_num = 150
+
+    for epoch in range(epoch_num):
+        # print(epoch)
+        # epochs _losses = []
         for batched_graph, labels in dataloader:
             feats = batched_graph.ndata['potentials']
-            logits = model(batched_graph, feats)
-            loss = F.cross_entropy(logits, labels)
+            pred = model(batched_graph, feats)
+            loss = F.binary_cross_entropy(pred, labels)
             opt.zero_grad()
             loss.backward()
+            # print(epoch, loss.detach().item())
             opt.step()
+        print("Epoch ", epoch, "/150")
+        print("-Loss: ", loss.detach().item())

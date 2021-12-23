@@ -64,9 +64,13 @@ if __name__ == "__main__":
     EEGhandler = EEGHandler()
     path = "eegtrialsdata.mat"
     x, y = EEGhandler.load_eeg(path)
-    data = x[0]
-    functional_connectivity = EEGhandler.compute_functional_connectivity(data)
-    adjacency = EEGhandler.thresholding(functional_connectivity, 0.4, ignore_negative = True)
-    print(adjacency)
-    G = BrainNetwork(adjacency, x[0], nodes_features=True)
+    for i in x:
+        functional_connectivity = EEGhandler.compute_functional_connectivity(i)
+        # print(functional_connectivity)
+        adjacency = EEGhandler.thresholding(functional_connectivity, 0.3, ignore_negative = False)
+        G = BrainNetwork(adjacency, i, nodes_features=True)
+        for i in G.get_degree():
+            if G.get_degree()[i] == 0:
+                print("got 0")
+                print(i)
 

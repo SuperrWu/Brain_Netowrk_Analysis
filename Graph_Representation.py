@@ -23,10 +23,13 @@ class EEGDataset(DGLDataset):
         for i in tqdm(zip(x, y)):
             # print(idx, item)
             functional_connectivity = EEGhandler.compute_functional_connectivity(i[0])
-            adjacency = EEGhandler.thresholding(functional_connectivity, 0.6, ignore_negative = False)
+            adjacency = EEGhandler.thresholding(functional_connectivity, 0.3, ignore_negative = False)
             brainnet = BrainNetwork(adjacency, i[0], nodes_features=True)
             g = dgl.from_networkx(brainnet.Graph)
-            g.ndata['potentials'] = torch.from_numpy(i[0])
+            feature_tensor = torch.from_numpy(i[0])
+            feature_tensor = feature_tensor.to(torch.float32)
+            g.ndata['potentials'] = feature_tensor
+            # print(feature_tensor.dtype)
             # g.edata["weight"] = adjacency
             # for idx, item in g.nodes():
             #    g.ndata["potentials"] = torch.ones(g.num_nodes(), 3)
@@ -43,6 +46,15 @@ class EEGDataset(DGLDataset):
 
     def __len__(self):
         return len(self.graphs)
+    
+    def plot_n_graph(self, n):
+        graph = self.graphs[n]
+        label = self.labels[n]
+        fig, ax = plt.subplots()
+        nx.draw(graph.to_networkx(),ax=ax)
+        ax.set_title('Class: {:d}'.format(label))
+        plt.savefig("plot_n_graph.png")
+
 
     @property
     def num_labels(self):
@@ -55,5 +67,6 @@ class EEGDataset(DGLDataset):
 
 if __name__ == "__main__":
     dataset = EEGDataset()
+    dataset.plot_n_graph(3)
     
     # print(graph.ndata["potentials"][1].shape)
