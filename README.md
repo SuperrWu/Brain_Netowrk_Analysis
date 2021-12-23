@@ -3,7 +3,7 @@
 Analyzing the brain relationship and classifying directions by using Brain Connectivity Network(or functional connectivity matrix).
 
 # How?
-##  construct BrainConnectivityNet
+##  Construct BrainConnectivityNet
 
 * Compute Pearson Correlation Coefficient of paired channel to build functional connectivity matrix.
 
@@ -19,37 +19,35 @@ Analyzing the brain relationship and classifying directions by using Brain Conne
 
 - Common way
 
-* Average every trial and every channel's potentials in all time(1s)
+(1) Average every trial and every channel's potentials in all time(1s)
 
-* Construct one BrainConnectivityNet
+(2) Construct one BrainConnectivityNet
 
-* Extract edges and nodes features(centrality, degree, etc.)
+(3) Extract edges and nodes features(centrality, degree, etc.)
 
-* Extract nodes features by using PCA
+(4) Extract nodes features by using PCA
 
-* Integrate edges and nodes features [edges * in-nodes:importance of nodes * out-nodes:importance of nodes]
+(5) Integrate edges and nodes features [edges * in-nodes:importance of nodes * out-nodes:importance of nodes]
 
-* Flatten features (62 * 62 = 3844)
+(6) Flatten features (62 * 62 = 3844)
 
-* Train a forward nerual network
-
+(7) Train a forward nerual network
 - Improved way
 
-* Extract time features by building several BrainConnectivityNet by dividing time into pieces (10 time point out of 100 time point, 100HZ here)
+(1) Extract time features by building several BrainConnectivityNet by dividing time into pieces (10 time point out of 100 time point, 100HZ here)
 
-* Do same thing before to get trianing data with format (60 sample, 10 time step, 3844 features)
+(2) Do same thing before to get trianing data with format (60 sample, 10 time step, 3844 features)
 
-* Train a LSTM nerual network
+(3) Train a LSTM nerual network
+-  GNN
 
-- GNN
+(1) Convert networkx object to DGL data.Graph object
 
-* Convert networkx object to DGL data.Graph object
-
-* Apply GNN
+(2) Apply GNN
 
 # Usage
 
-install necessary packages
+Install necessary packages
 
 ```
 pip install -r requirement.txt
