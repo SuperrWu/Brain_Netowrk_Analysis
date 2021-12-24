@@ -52,5 +52,28 @@ Install necessary packages
 ```
 pip install -r requirement.txt
 ```
+```
+EEGhandler = EEGHandler()
+# your eeg raw data
+path = "eegtrialsdata_hyh.mat"
+# load data
+x, y = EEGhandler.load_eeg(path)
+
+for i in tqdm(x):
+  # compute functional_connectivity
+  functional_connectivity = EEGhandler.compute_functional_connectivity(i)
+  # compute adjacency by thresholding, considering negative parts
+  adjacency = EEGhandler.thresholding(functional_connectivity, 0.6, ignore_negative = False)
+  # construct brainnet
+  BrainNet = BrainNetwork(adjacency)
+  # features extructor
+  feats = FeatureExtractor()
+  nodes_feats = feats.get_nodes_features(G)
+  edges_feats = feats.get_edges_features(G)
+  features = feats.integrate_features(nodes_feats, edges_feats)
+  # normalization
+  scaler = MinMaxScaler().fit(features)
+  X_scale = scaler.transform(features)
+```
 
 
